@@ -1,64 +1,57 @@
-import os
 import pickle
 import sys
+from typing import List
 
-import numpy as np
+import pandas as pd
 import yaml
 from sklearn.ensemble import RandomForestClassifier
 
+from download import TITANIC_DATA_FOLDER
 
-def train(seed, n_est, min_split, matrix):
-    """
-    Train a random forest classifier.
+
+def get_df(file_name):
+    """Read the input data file and return a data frame."""
+    df = pd.read_csv(file_name)
+    sys.stderr.write(f"The input data frame {file_name} size is {df.shape}\n")
+    return df
+
+
+def save_to_pickel(model, file_path: str):
+    with open(file_path, "wb") as fd:
+        pickle.dump(model, fd)
+
+
+def generate_and_save_train_features(
+    train_input: str, train_output: str, features: List[str]
+):
+    """Creates model and saves to file
 
     Args:
-        seed (int): Random seed.
-        n_est (int): Number of trees in the forest.
-        min_split (int): Minimum number of samples required to split an internal node.
-        matrix (scipy.sparse.csr_matrix): Input matrix.
-
-    Returns:
-        sklearn.ensemble.RandomForestClassifier: Trained classifier.
+        train_input (str): Train input file name.
+        train_output (str): Train output file name.
+        features (List[str]): list of features
     """
-    labels = np.squeeze(matrix[:, 1].toarray())
-    x = matrix[:, 2:]
+    df_train = get_df(train_input)
+    
+    y = df_train["Survived"]
+    X = pd.get_dummies(df_train[features])
 
-    sys.stderr.write("Input matrix size {}\n".format(matrix.shape))
-    sys.stderr.write("X matrix size {}\n".format(x.shape))
-    sys.stderr.write("Y matrix size {}\n".format(labels.shape))
+    model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=1)
+    model.fit(X, y)
 
-    clf = RandomForestClassifier(
-        n_estimators=n_est, min_samples_split=min_split, n_jobs=2, random_state=seed
-    )
-
-    clf.fit(x, labels)
-
-    return clf
+    save_to_pickel(model, train_output)
 
 
 def main():
-    params = yaml.safe_load(open("params.yaml"))["train"]
+    # TODO add YAML params to model
+    # params = yaml.safe_load(open("params.yaml"))["featurize"]
+    features = ["Pclass", "Sex", "SibSp", "Parch"]
 
-    if len(sys.argv) != 3:
-        sys.stderr.write("Arguments error. Usage:\n")
-        sys.stderr.write("\tpython train.py features model\n")
-        sys.exit(1)
-
-    input = sys.argv[1]
-    output = sys.argv[2]
-    seed = params["seed"]
-    n_est = params["n_est"]
-    min_split = params["min_split"]
-
-    # Load the data
-    with open(os.path.join(input, "train.pkl"), "rb") as fd:
-        matrix, _ = pickle.load(fd)
-
-    clf = train(seed=seed, n_est=n_est, min_split=min_split, matrix=matrix)
-
-    # Save the model
-    with open(output, "wb") as fd:
-        pickle.dump(clf, fd)
+    generate_and_save_train_features(
+        f"{TITANIC_DATA_FOLDER}/train.csv",
+        f"{TITANIC_DATA_FOLDER}/output/train.pkl",
+        features,
+    )
 
 
 if __name__ == "__main__":
