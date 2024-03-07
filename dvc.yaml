@@ -12,64 +12,16 @@ artifacts:
     - classification
     - stackoverflow
 stages:
-  prepare:
-    cmd: python src/prepare.py data/data.xml
+  download:
+    cmd: python src/download.py
     deps:
-    - data/data.xml
-    - src/prepare.py
-    params:
-    - prepare.seed
-    - prepare.split
-    outs:
-    - data/prepared
-  featurize:
-    cmd: python src/featurization.py data/prepared data/features
-    deps:
-    - data/prepared
-    - src/featurization.py
-    params:
-    - featurize.max_features
-    - featurize.ngrams
-    outs:
-    - data/features
+    - src/download.py
   train:
-    cmd: python src/train.py data/features model.pkl
+    cmd: python src/train.py data/titanic/output train.pkl
     deps:
-    - data/features
     - src/train.py
-    params:
-    - train.min_split
-    - train.n_est
-    - train.seed
     outs:
-    - model.pkl
-  evaluate:
-    cmd: python src/evaluate.py model.pkl data/features
-    deps:
-    - data/features
-    - model.pkl
-    - src/evaluate.py
-    outs:
-    - eval
-metrics:
-- eval/metrics.json
-plots:
-- ROC:
-    template: simple
-    x: fpr
-    y:
-      eval/plots/sklearn/roc/train.json: tpr
-      eval/plots/sklearn/roc/test.json: tpr
-- Confusion-Matrix:
-    template: confusion
-    x: actual
-    y:
-      eval/plots/sklearn/cm/train.json: predicted
-      eval/plots/sklearn/cm/test.json: predicted
-- Precision-Recall:
-    template: simple
-    x: recall
-    y:
-      eval/plots/sklearn/prc/train.json: precision
-      eval/plots/sklearn/prc/test.json: precision
-- eval/plots/images/importance.png
+    - data/titanic/output/train.pkl
+# TODO: add evaluate script
+# TODO: add metrics
+# TODO: add plots

@@ -1,3 +1,4 @@
 .venv/
 /model.pkl
 /eval
+src/__pycache__
