@@ -22,6 +22,13 @@ stages:
     - src/train.py
     outs:
     - data/titanic/output/train.pkl
-# TODO: add evaluate script
-# TODO: add metrics
+  evaluate:
+    cmd: python src/evaluate.py data/titanic/output train.pkl
+    deps:
+    - src/evaluate.py
+    - data/titanic/output
+    outs:
+    - eval
+metrics:
+  - eval/metrics.json
 # TODO: add plots
