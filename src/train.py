@@ -8,6 +8,8 @@ from sklearn.ensemble import RandomForestClassifier
 
 from download import TITANIC_DATA_FOLDER
 
+FEATURES = ["Pclass", "Sex", "SibSp", "Parch"]
+
 
 def get_df(file_name):
     """Read the input data file and return a data frame."""
@@ -32,7 +34,7 @@ def generate_and_save_train_features(
         features (List[str]): list of features
     """
     df_train = get_df(train_input)
-    
+
     y = df_train["Survived"]
     X = pd.get_dummies(df_train[features])
 
@@ -40,17 +42,17 @@ def generate_and_save_train_features(
     model.fit(X, y)
 
     save_to_pickel(model, train_output)
+    print("saved train to pickel")
 
 
 def main():
     # TODO add YAML params to model
     # params = yaml.safe_load(open("params.yaml"))["featurize"]
-    features = ["Pclass", "Sex", "SibSp", "Parch"]
 
     generate_and_save_train_features(
         f"{TITANIC_DATA_FOLDER}/train.csv",
         f"{TITANIC_DATA_FOLDER}/output/train.pkl",
-        features,
+        FEATURES,
     )
 
 
